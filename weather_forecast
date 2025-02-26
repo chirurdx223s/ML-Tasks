@@ -1,0 +1,66 @@
+# Import Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+# 1️⃣ Load Dataset
+from google.colab import files
+uploaded = files.upload()  # Upload your 'data.csv' file manually
+
+# Load CSV file
+df = pd.read_csv("data.csv")
+
+# 2️⃣ Data Cleaning
+# Convert 'Rain' column to binary (0 = No Rain, 1 = Rain)
+df['Rain'] = df['Rain'].map({'no rain': 0, 'rain': 1})
+
+# Remove duplicates
+df_cleaned = df.drop_duplicates()
+
+# 3️⃣ Exploratory Data Analysis (EDA)
+plt.figure(figsize=(5, 4))
+sns.countplot(x=df_cleaned["Rain"], palette=["blue", "orange"])
+plt.xticks(ticks=[0, 1], labels=["No Rain", "Rain"])
+plt.title("Rainfall Distribution")
+plt.show()
+
+# Correlation Heatmap
+plt.figure(figsize=(8, 6))
+sns.heatmap(df_cleaned.corr(), annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
+plt.title("Feature Correlation Heatmap")
+plt.show()
+
+# 4️⃣ Train-Test Split
+X = df_cleaned.drop(columns=["Rain"])
+y = df_cleaned["Rain"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+# 5️⃣ Train Machine Learning Models
+## Logistic Regression
+logreg = LogisticRegression()
+logreg.fit(X_train, y_train)
+y_pred_logreg = logreg.predict(X_test)
+print("Logistic Regression Accuracy:", accuracy_score(y_test, y_pred_logreg))
+print(classification_report(y_test, y_pred_logreg))
+
+## Random Forest
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+y_pred_rf = rf.predict(X_test)
+print("Random Forest Accuracy:", accuracy_score(y_test, y_pred_rf))
+print(classification_report(y_test, y_pred_rf))
+
+## XGBoost
+xgb = XGBClassifier(use_label_encoder=False, eval_metric="logloss")
+xgb.fit(X_train, y_train)
+y_pred_xgb = xgb.predict(X_test)
+print("XGBoost Accuracy:", accuracy_score(y_test, y_pred_xgb))
+print(classification_report(y_test, y_pred_xgb))
+
+print("✅ Model Training Completed!")
